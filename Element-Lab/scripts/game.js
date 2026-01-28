@@ -1,16 +1,13 @@
 let funds = 0;
-let fundsPerSec = 0;
-
-let ownedElements = ["Hydrogen"];
+let fps = 0;
+let owned = new Set(["H"]);
 let compounds = [];
 let colliderBuilt = false;
 
-function recalcIncome() {
-    fundsPerSec = 0;
-    compounds.forEach(c => fundsPerSec += c.income);
+function recalc() {
+    fps = compounds.reduce((a,c)=>a+c.income,0);
 }
 
-setInterval(() => {
-    funds += fundsPerSec / 10;
-}, 100);
-
+setInterval(()=>{
+    funds += fps/10;
+},100);
