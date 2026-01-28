@@ -1,44 +1,34 @@
-let colliderCharging = false;
+let colliderCharging=false;
 
-function startColliderCharge() {
-  if (!colliderBuilt) return log("❗ Collider not built.");
-  if (colliderCharging) return;
+function startColliderCharge(){
+  if(colliderCharging) return;
+  colliderCharging=true;
+  log("⚛️ Collider charging...");
 
-  colliderCharging = true;
-  log("⚛️ Collider charging... (60 seconds)");
-
-  setTimeout(() => {
-    colliderCharging = false;
+  setTimeout(()=>{
+    colliderCharging=false;
     fireCollider();
-  }, 60000);
+  },60000);
 }
 
-function fireCollider() {
-  const input = document.getElementById("colliderInput").value.replace(/\s/g,"");
-  if (!input) return log("❌ No collider input.");
+function fireCollider(){
+  const input=document.getElementById("colliderInput").value.replace(/\s/g,"");
+  const parts=input.split("+");
+  let stability=0;
 
-  const symbols = input.split("+");
-  let stabilitySum = 0;
-
-  for (const s of symbols) {
-    if (!owned.has(s)) return log(`❌ You do not own ${s}`);
-    const el = ELEMENTS.find(e => e.symbol === s);
-    stabilitySum += el.stability;
+  for(const p of parts){
+    if(!owned.has(p)) return log("❌ Missing element "+p);
+    stability+=ELEMENTS.find(e=>e.symbol===p).stability;
   }
 
-  const avgStability = stabilitySum / symbols.length;
-  const failChance = Math.max(5, 100 - avgStability);
-
-  if (Math.random() * 100 < failChance) {
-    log(`💥 Collider failure! Containment breached.`);
+  const avg=stability/parts.length;
+  if(Math.random()*100 > avg){
+    log("💥 Collider failure!");
     return;
   }
 
-  const name = "X-" + Math.floor(Math.random() * 9000 + 1000);
-  const income = Math.floor(avgStability / 5) + 5;
-
-  compounds.push({ name, income });
+  const name="X-"+Math.floor(Math.random()*9999);
+  compounds.push({name,income:Math.floor(avg/5)+5});
   recalc();
-
-  log(`⚛️ New fictional element created: ${name}`);
+  log("⚛️ Fictional element created: "+name);
 }
