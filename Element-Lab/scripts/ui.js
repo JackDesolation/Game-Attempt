@@ -1,58 +1,43 @@
-const marketElements = [
-    { name:"Oxygen", cost:100 },
-    { name:"Carbon", cost:250 },
-    { name:"Nitrogen", cost:500 },
-    { name:"Sodium", cost:1000 },
-    { name:"Chlorine", cost:1500 }
-];
-
-function log(msg) {
-    const l = document.getElementById("log");
-    l.innerHTML += msg + "<br>";
-    l.scrollTop = l.scrollHeight;
+function log(msg){
+    const l=document.getElementById("log");
+    l.innerHTML+=msg+"<br>";
 }
 
-function buyElement(name, cost) {
-    if (funds >= cost && !ownedElements.includes(name)) {
-        funds -= cost;
-        ownedElements.push(name);
-        log(`🧬 Acquired element: ${name}`);
-    }
+function submitReaction(){
+    const eq=document.getElementById("equation").value.replace(/\s/g,"");
+    const r=REACTIONS.find(r=>r.eq===eq);
+    if(!r) return log("❌ Reaction invalid.");
+    if(compounds.find(c=>c.name===r.name)) return;
+    compounds.push({name:r.name,income:r.income});
+    recalc();
+    log(`⚗️ Compound discovered: ${r.name}`);
 }
 
-function attemptReaction() {
-    for (const r of reactions) {
-        if (
-            r.inputs.every(i => ownedElements.includes(i)) &&
-            !compounds.find(c => c.name === r.output)
-        ) {
-            compounds.push({ name:r.output, income:r.income });
-            recalcIncome();
-            log(`⚗️ New compound discovered: ${r.output}`);
-            return;
-        }
-    }
-    log("❌ No new viable reactions found.");
+function renderPT(){
+    const p=document.getElementById("ptable");
+    ELEMENTS.forEach(e=>{
+        const d=document.createElement("div");
+        d.className="element"+(owned.has(e.symbol)?" owned":"");
+        d.innerHTML=`${e.symbol}<br>${e.Z}`;
+        d.onclick=()=>{
+            if(owned.has(e.symbol)) return;
+            if(funds>=e.price){
+                funds-=e.price;
+                owned.add(e.symbol);
+                log(`🧬 Acquired ${e.name}`);
+            }
+        };
+        p.appendChild(d);
+    });
 }
 
-function updateUI() {
-    document.getElementById("funds").textContent = funds.toFixed(1);
-    document.getElementById("fps").textContent = fundsPerSec.toFixed(1);
-
-    document.getElementById("elements").innerHTML =
-        ownedElements.map(e => `• ${e}`).join("<br>");
-
-    document.getElementById("compounds").innerHTML =
-        compounds.map(c => `<div class="compound">• ${c.name} (+$${c.income}/s)</div>`).join("");
-
-    document.getElementById("market").innerHTML =
-        marketElements.map(e =>
-            `<button onclick="buyElement('${e.name}', ${e.cost})">
-                ${e.name} — $${e.cost}
-            </button>`
-        ).join("<br>");
+function update(){
+    document.getElementById("funds").textContent=funds.toFixed(1);
+    document.getElementById("fps").textContent=fps.toFixed(1);
+    document.getElementById("compounds").innerHTML=
+        compounds.map(c=>`<div class="compound">${c.name}</div>`).join("");
 }
 
-setInterval(updateUI, 100);
-log("🧪 Lab initialized. Starting element: Hydrogen.");
-
+setInterval(update,100);
+renderPT();
+log("🧪 Lab started. Hydrogen available.");
