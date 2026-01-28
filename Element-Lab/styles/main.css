@@ -4,6 +4,8 @@ body {
     font-family:Segoe UI, Arial, sans-serif;
     padding:20px;
 }
+.subtitle { color:#94a3b8; }
+
 .panel {
     background:#0b1220;
     border:1px solid #1e293b;
@@ -11,7 +13,6 @@ body {
     padding:15px;
     margin-bottom:15px;
 }
-.subtitle { color:#94a3b8; }
 
 #ptable {
     display:grid;
@@ -32,23 +33,27 @@ body {
     background:#14532d;
 }
 
-.log {
-    background:#020617;
-    padding:10px;
-    max-height:220px;
-    overflow-y:auto;
-}
-.compound { color:#fde68a; }
-
 input {
     width:100%;
     padding:6px;
     margin-bottom:6px;
 }
+
 button {
     background:#2563eb;
     border:none;
     padding:6px 12px;
     color:white;
     border-radius:6px;
+    cursor:pointer;
 }
+
+.log {
+    background:#020617;
+    padding:10px;
+    max-height:220px;
+    overflow-y:auto;
+}
+
+.compound { color:#fde68a; }
+.fictional { color:#fca5a5; }
