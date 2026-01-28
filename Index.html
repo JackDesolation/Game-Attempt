@@ -1,2 +1,269 @@
-var "Funding" == 0;
-var "Unlcoked Elements" == "Placeholder List Here", "See i didn't lie.";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Element Ascension</title>
+<style>
+body {
+    background:#070b14;
+    color:#e6e6e6;
+    font-family:Arial, sans-serif;
+    padding:20px;
+}
+h1,h2 { color:#6cf; }
+.panel {
+    background:#0f1626;
+    border:1px solid #223;
+    border-radius:8px;
+    padding:15px;
+    margin-bottom:15px;
+}
+button {
+    background:#1e90ff;
+    border:none;
+    padding:8px 12px;
+    margin:5px 0;
+    color:white;
+    border-radius:5px;
+    cursor:pointer;
+}
+button:disabled { background:#444; }
+.stat { color:#9f9; }
+.log {
+    background:#05080f;
+    padding:10px;
+    max-height:200px;
+    overflow-y:auto;
+    font-size:0.9em;
+}
+.tech { color:#fc9; }
+.fictional { color:#ff9; }
+</style>
+</head>
+<body>
+
+<h1>⚛️ Element Ascension</h1>
+
+<div class="panel">
+Funds: $<span class="stat" id="funds">0</span><br>
+Income/sec: $<span class="stat" id="fps">0</span><br>
+Knowledge: <span class="stat" id="knowledge">0</span>
+</div>
+
+<div class="panel">
+<h2>🔬 Research</h2>
+<div id="elements"></div>
+</div>
+
+<div class="panel">
+<h2>🌳 Tech Tree</h2>
+<button onclick="unlockLab()">🧰 Basic Lab ($500)</button><br>
+<button onclick="unlockEnergy()">🔥 Energy Systems ($1500)</button><br>
+<button onclick="unlockCollider()">⚛️ Particle Collider ($5000)</button><br>
+<button onclick="unlockMega()">🌌 Megastructures ($20000)</button>
+</div>
+
+<div class="panel">
+<h2>📜 Log</h2>
+<div class="log" id="log"></div>
+</div>
+
+<div class="panel">
+<h2>🌌 Prestige</h2>
+<button onclick="prestige()">Trigger Big Bang Reset</button>
+</div>
+
+<script>
+/* =======================
+   SAVE / LOAD
+======================= */
+let save = JSON.parse(localStorage.getItem("ea_save")) || null;
+
+/* =======================
+   CORE STATE
+======================= */
+let funds = save?.funds || 0;
+let knowledge = save?.knowledge || 0;
+let lastTick = save?.lastTick || Date.now();
+
+let elements = save?.elements || [{ name:"Carbon", income:1 }];
+let fictional = save?.fictional || [];
+
+let tech = save?.tech || {
+    lab:false,
+    energy:false,
+    collider:false,
+    mega:false
+};
+
+let fundsPerSec = 0;
+
+/* =======================
+   UI HELPERS
+======================= */
+function log(msg) {
+    const l = document.getElementById("log");
+    l.innerHTML += msg + "<br>";
+    l.scrollTop = l.scrollHeight;
+}
+
+function updateUI() {
+    document.getElementById("funds").textContent = funds.toFixed(1);
+    document.getElementById("fps").textContent = fundsPerSec.toFixed(1);
+    document.getElementById("knowledge").textContent = knowledge;
+
+    const el = document.getElementById("elements");
+    el.innerHTML = "";
+    elements.forEach(e=>{
+        el.innerHTML += `<div>${e.name} (+$${e.income}/s)</div>`;
+    });
+}
+
+/* =======================
+   ECONOMY
+======================= */
+function recalcIncome() {
+    fundsPerSec = 0;
+    elements.forEach(e=>fundsPerSec += e.income);
+    if (tech.lab) fundsPerSec += 5;
+    if (tech.energy) fundsPerSec += 25;
+    if (tech.mega) fundsPerSec += 100;
+
+    fictional.forEach(f=>{
+        if (f.fuel > 100 && f.stability > 50) {
+            fundsPerSec += 40;
+        }
+    });
+
+    fundsPerSec *= (1 + knowledge * 0.1);
+}
+
+/* =======================
+   TECH TREE
+======================= */
+function unlockLab() {
+    if (funds >= 500 && !tech.lab) {
+        funds -= 500;
+        tech.lab = true;
+        unlockElement();
+        log("🧰 Basic Lab unlocked.");
+        recalcIncome();
+    }
+}
+
+function unlockEnergy() {
+    if (funds >= 1500 && !tech.energy) {
+        funds -= 1500;
+        tech.energy = true;
+        log("🔥 Energy Systems online.");
+        recalcIncome();
+    }
+}
+
+function unlockCollider() {
+    if (funds >= 5000 && !tech.collider) {
+        funds -= 5000;
+        tech.collider = true;
+        log("⚛️ Particle Collider operational.");
+        recalcIncome();
+    }
+}
+
+function unlockMega() {
+    if (funds >= 20000 && !tech.mega) {
+        funds -= 20000;
+        tech.mega = true;
+        log("🌌 Megastructures constructed.");
+        recalcIncome();
+    }
+}
+
+/* =======================
+   ELEMENT PROGRESSION
+======================= */
+function unlockElement() {
+    const pool = ["Oxygen","Hydrogen","Nitrogen","Iron","Copper","Silicon"];
+    const available = pool.filter(p=>!elements.find(e=>e.name===p));
+    if (!available.length) return;
+
+    const name = available[Math.floor(Math.random()*available.length)];
+    const income = Math.floor(Math.random()*3)+2;
+    elements.push({ name, income });
+    log(`🔓 New element researched: ${name}`);
+}
+
+/* =======================
+   COLLIDER
+======================= */
+function colliderTick() {
+    if (!tech.collider) return;
+
+    const stability = Math.floor(Math.random()*100);
+    const fuel = Math.floor(Math.random()*150);
+    const name = "X-" + Math.floor(Math.random()*9999);
+
+    fictional.push({ name, stability, fuel });
+
+    let verdict = "🧪 Exotic material.";
+    if (fuel > 100 && stability > 50) verdict = "🔥 Exceptional fuel!";
+    if (stability < 30) verdict = "💥 Extremely unstable.";
+
+    log(`<span class="fictional">
+        🧬 ${name} | Stability ${stability} | Fuel ${fuel}<br>
+        ${verdict}
+    </span>`);
+
+    recalcIncome();
+}
+
+/* =======================
+   PRESTIGE
+======================= */
+function prestige() {
+    if (funds < 10000) {
+        log("❗ Need $10,000 to trigger Big Bang.");
+        return;
+    }
+
+    const gained = Math.floor(Math.sqrt(funds / 1000));
+    knowledge += gained;
+
+    funds = 0;
+    elements = [{ name:"Carbon", income:1 }];
+    fictional = [];
+    tech = { lab:false, energy:false, collider:false, mega:false };
+
+    log(`🌌 Big Bang triggered. Knowledge gained: +${gained}`);
+    recalcIncome();
+}
+
+/* =======================
+   OFFLINE PROGRESS
+======================= */
+const now = Date.now();
+const diff = (now - lastTick) / 1000;
+recalcIncome();
+funds += diff * fundsPerSec;
+log(`⏳ Offline progress: ${diff.toFixed(1)}s`);
+
+/* =======================
+   GAME LOOPS
+======================= */
+setInterval(()=>{
+    funds += fundsPerSec / 10;
+    updateUI();
+},100);
+
+setInterval(colliderTick, 10000);
+
+setInterval(()=>{
+    localStorage.setItem("ea_save", JSON.stringify({
+        funds, knowledge, elements, fictional, tech, lastTick:Date.now()
+    }));
+},5000);
+
+updateUI();
+</script>
+
+</body>
+</html>
