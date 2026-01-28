@@ -1,1 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Element Lab</title>
+<link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+
+<h1>⚗️ Element Lab</h1>
+<p class="subtitle">A sandbox idle science game</p>
+
+<div class="panel">
+<h3>📊 Lab Funding</h3>
+Funds: $<span id="funds">0</span><br>
+Funding Rate: $<span id="fps">0</span> / sec
+</div>
+
+<div class="panel">
+<h3>🧬 Elements Available</h3>
+<div id="elements"></div>
+</div>
+
+<div class="panel">
+<h3>⚗️ Experimental Bench</h3>
+<button onclick="attemptReaction()">Attempt Chemical Reaction</button>
+</div>
+
+<div class="panel">
+<h3>📄 Published Compounds</h3>
+<div id="compounds"></div>
+</div>
+
+<div class="panel">
+<h3>🛒 Element Procurement</h3>
+<div id="market"></div>
+</div>
+
+<div class="panel">
+<h3>⚛️ High-Energy Physics</h3>
+<button onclick="buildCollider()">Build Particle Collider ($10,000)</button>
+<button onclick="colliderExperiment()">Run Collider Experiment</button>
+</div>
+
+<div class="panel">
+<h3>📓 Lab Notes</h3>
+<div id="log" class="log"></div>
+</div>
+
+<script src="scripts/chemistry.js"></script>
+<script src="scripts/collider.js"></script>
+<script src="scripts/game.js"></script>
+<script src="scripts/ui.js"></script>
+</body>
+</html>
 
