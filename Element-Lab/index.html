@@ -8,49 +8,44 @@
 <body>
 
 <h1>⚗️ Element Lab</h1>
-<p class="subtitle">A sandbox idle science game</p>
+<p class="subtitle">Its big brain time twin</p>
 
 <div class="panel">
-<h3>📊 Lab Funding</h3>
-Funds: $<span id="funds">0</span><br>
-Funding Rate: $<span id="fps">0</span> / sec
+Funds: $<span id="funds">0</span> |
+Funding/sec: $<span id="fps">0</span>
 </div>
 
 <div class="panel">
-<h3>🧬 Elements Available</h3>
-<div id="elements"></div>
+<h3>🧬 Periodic Table</h3>
+<div id="ptable"></div>
 </div>
 
 <div class="panel">
-<h3>⚗️ Experimental Bench</h3>
-<button onclick="attemptReaction()">Attempt Chemical Reaction</button>
+<h3>⚗️ Chemical Reaction</h3>
+<input id="equation" placeholder="Example: 2H2 + O2 -> 2H2O">
+<button onclick="submitReaction()">Run Reaction</button>
 </div>
 
 <div class="panel">
-<h3>📄 Published Compounds</h3>
+<h3>📄 Discovered Compounds</h3>
 <div id="compounds"></div>
 </div>
 
 <div class="panel">
-<h3>🛒 Element Procurement</h3>
-<div id="market"></div>
+<h3>⚛️ Collider</h3>
+<button onclick="buildCollider()">Build Collider ($10,000)</button>
+<button onclick="colliderExperiment()">Collider Experiment</button>
 </div>
 
 <div class="panel">
-<h3>⚛️ High-Energy Physics</h3>
-<button onclick="buildCollider()">Build Particle Collider ($10,000)</button>
-<button onclick="colliderExperiment()">Run Collider Experiment</button>
-</div>
-
-<div class="panel">
-<h3>📓 Lab Notes</h3>
+<h3>📓 Lab Log</h3>
 <div id="log" class="log"></div>
 </div>
 
-<script src="scripts/chemistry.js"></script>
-<script src="scripts/collider.js"></script>
+<script src="scripts/data_elements.js"></script>
+<script src="scripts/data_reactions.js"></script>
 <script src="scripts/game.js"></script>
+<script src="scripts/collider.js"></script>
 <script src="scripts/ui.js"></script>
 </body>
 </html>
-
