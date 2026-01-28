@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Element Ascension</title>
+<title>Element Lab</title>
 <style>
 body {
-    background:#070b14;
+    background:#060a13;
     color:#e6e6e6;
     font-family:Arial, sans-serif;
     padding:20px;
@@ -22,7 +22,7 @@ button {
     background:#1e90ff;
     border:none;
     padding:8px 12px;
-    margin:5px 0;
+    margin:4px 0;
     color:white;
     border-radius:5px;
     cursor:pointer;
@@ -36,71 +36,82 @@ button:disabled { background:#444; }
     overflow-y:auto;
     font-size:0.9em;
 }
-.tech { color:#fc9; }
-.fictional { color:#ff9; }
+.compound { color:#ff9; }
+.fictional { color:#fc9; }
 </style>
 </head>
 <body>
 
-<h1>⚛️ Element Ascension</h1>
+<h1>⚗️ Element Lab</h1>
 
 <div class="panel">
 Funds: $<span class="stat" id="funds">0</span><br>
-Income/sec: $<span class="stat" id="fps">0</span><br>
-Knowledge: <span class="stat" id="knowledge">0</span>
+Funding/sec: $<span class="stat" id="fps">0</span>
 </div>
 
 <div class="panel">
-<h2>🔬 Research</h2>
+<h2>🧪 Owned Elements</h2>
 <div id="elements"></div>
 </div>
 
 <div class="panel">
-<h2>🌳 Tech Tree</h2>
-<button onclick="unlockLab()">🧰 Basic Lab ($500)</button><br>
-<button onclick="unlockEnergy()">🔥 Energy Systems ($1500)</button><br>
-<button onclick="unlockCollider()">⚛️ Particle Collider ($5000)</button><br>
-<button onclick="unlockMega()">🌌 Megastructures ($20000)</button>
+<h2>⚗️ Lab Bench</h2>
+<button onclick="attemptReaction()">Attempt Chemical Reaction</button>
 </div>
 
 <div class="panel">
-<h2>📜 Log</h2>
+<h2>📄 Compounds Discovered</h2>
+<div id="compounds"></div>
+</div>
+
+<div class="panel">
+<h2>🛒 Element Market</h2>
+<button onclick="buyElement('Oxygen', 100)">Buy Oxygen ($100)</button><br>
+<button onclick="buyElement('Carbon', 250)">Buy Carbon ($250)</button><br>
+<button onclick="buyElement('Nitrogen', 500)">Buy Nitrogen ($500)</button><br>
+<button onclick="buyElement('Sodium', 1000)">Buy Sodium ($1000)</button><br>
+<button onclick="buyElement('Chlorine', 1500)">Buy Chlorine ($1500)</button>
+</div>
+
+<div class="panel">
+<h2>⚛️ Particle Collider</h2>
+<button onclick="buyCollider()">Build Collider ($10,000)</button><br>
+<button onclick="colliderExperiment()">Collider Experiment</button>
+</div>
+
+<div class="panel">
+<h2>📜 Research Log</h2>
 <div class="log" id="log"></div>
 </div>
 
-<div class="panel">
-<h2>🌌 Prestige</h2>
-<button onclick="prestige()">Trigger Big Bang Reset</button>
-</div>
-
 <script>
-/* =======================
-   SAVE / LOAD
-======================= */
-let save = JSON.parse(localStorage.getItem("ea_save")) || null;
-
-/* =======================
+/* =====================
    CORE STATE
-======================= */
-let funds = save?.funds || 0;
-let knowledge = save?.knowledge || 0;
-let lastTick = save?.lastTick || Date.now();
-
-let elements = save?.elements || [{ name:"Carbon", income:1 }];
-let fictional = save?.fictional || [];
-
-let tech = save?.tech || {
-    lab:false,
-    energy:false,
-    collider:false,
-    mega:false
-};
-
+===================== */
+let funds = 0;
 let fundsPerSec = 0;
 
-/* =======================
+let ownedElements = ["Hydrogen"];
+
+let compounds = [];
+let colliderBuilt = false;
+let fictionalElements = [];
+
+/* =====================
+   CHEMISTRY DATABASE
+===================== */
+const reactions = [
+    { inputs:["Hydrogen","Oxygen"], output:"Water", income:2 },
+    { inputs:["Carbon","Oxygen"], output:"Carbon Dioxide", income:3 },
+    { inputs:["Nitrogen","Hydrogen"], output:"Ammonia", income:4 },
+    { inputs:["Sodium","Chlorine"], output:"Sodium Chloride", income:5 },
+    { inputs:["Carbon","Hydrogen"], output:"Methane", income:3 },
+    { inputs:["Carbon","Nitrogen"], output:"Cyanogen", income:6 }
+];
+
+/* =====================
    UI HELPERS
-======================= */
+===================== */
 function log(msg) {
     const l = document.getElementById("log");
     l.innerHTML += msg + "<br>";
@@ -110,160 +121,103 @@ function log(msg) {
 function updateUI() {
     document.getElementById("funds").textContent = funds.toFixed(1);
     document.getElementById("fps").textContent = fundsPerSec.toFixed(1);
-    document.getElementById("knowledge").textContent = knowledge;
 
-    const el = document.getElementById("elements");
-    el.innerHTML = "";
-    elements.forEach(e=>{
-        el.innerHTML += `<div>${e.name} (+$${e.income}/s)</div>`;
-    });
+    document.getElementById("elements").innerHTML =
+        ownedElements.map(e=>`<div>${e}</div>`).join("");
+
+    document.getElementById("compounds").innerHTML =
+        compounds.map(c=>`<div class="compound">${c.name} (+$${c.income}/s)</div>`).join("");
 }
 
-/* =======================
+/* =====================
    ECONOMY
-======================= */
+===================== */
 function recalcIncome() {
     fundsPerSec = 0;
-    elements.forEach(e=>fundsPerSec += e.income);
-    if (tech.lab) fundsPerSec += 5;
-    if (tech.energy) fundsPerSec += 25;
-    if (tech.mega) fundsPerSec += 100;
-
-    fictional.forEach(f=>{
-        if (f.fuel > 100 && f.stability > 50) {
-            fundsPerSec += 40;
-        }
-    });
-
-    fundsPerSec *= (1 + knowledge * 0.1);
+    compounds.forEach(c=>fundsPerSec += c.income);
 }
 
-/* =======================
-   TECH TREE
-======================= */
-function unlockLab() {
-    if (funds >= 500 && !tech.lab) {
-        funds -= 500;
-        tech.lab = true;
-        unlockElement();
-        log("🧰 Basic Lab unlocked.");
-        recalcIncome();
-    }
-}
-
-function unlockEnergy() {
-    if (funds >= 1500 && !tech.energy) {
-        funds -= 1500;
-        tech.energy = true;
-        log("🔥 Energy Systems online.");
-        recalcIncome();
-    }
-}
-
-function unlockCollider() {
-    if (funds >= 5000 && !tech.collider) {
-        funds -= 5000;
-        tech.collider = true;
-        log("⚛️ Particle Collider operational.");
-        recalcIncome();
-    }
-}
-
-function unlockMega() {
-    if (funds >= 20000 && !tech.mega) {
-        funds -= 20000;
-        tech.mega = true;
-        log("🌌 Megastructures constructed.");
-        recalcIncome();
-    }
-}
-
-/* =======================
-   ELEMENT PROGRESSION
-======================= */
-function unlockElement() {
-    const pool = ["Oxygen","Hydrogen","Nitrogen","Iron","Copper","Silicon"];
-    const available = pool.filter(p=>!elements.find(e=>e.name===p));
-    if (!available.length) return;
-
-    const name = available[Math.floor(Math.random()*available.length)];
-    const income = Math.floor(Math.random()*3)+2;
-    elements.push({ name, income });
-    log(`🔓 New element researched: ${name}`);
-}
-
-/* =======================
-   COLLIDER
-======================= */
-function colliderTick() {
-    if (!tech.collider) return;
-
-    const stability = Math.floor(Math.random()*100);
-    const fuel = Math.floor(Math.random()*150);
-    const name = "X-" + Math.floor(Math.random()*9999);
-
-    fictional.push({ name, stability, fuel });
-
-    let verdict = "🧪 Exotic material.";
-    if (fuel > 100 && stability > 50) verdict = "🔥 Exceptional fuel!";
-    if (stability < 30) verdict = "💥 Extremely unstable.";
-
-    log(`<span class="fictional">
-        🧬 ${name} | Stability ${stability} | Fuel ${fuel}<br>
-        ${verdict}
-    </span>`);
-
-    recalcIncome();
-}
-
-/* =======================
-   PRESTIGE
-======================= */
-function prestige() {
-    if (funds < 10000) {
-        log("❗ Need $10,000 to trigger Big Bang.");
-        return;
-    }
-
-    const gained = Math.floor(Math.sqrt(funds / 1000));
-    knowledge += gained;
-
-    funds = 0;
-    elements = [{ name:"Carbon", income:1 }];
-    fictional = [];
-    tech = { lab:false, energy:false, collider:false, mega:false };
-
-    log(`🌌 Big Bang triggered. Knowledge gained: +${gained}`);
-    recalcIncome();
-}
-
-/* =======================
-   OFFLINE PROGRESS
-======================= */
-const now = Date.now();
-const diff = (now - lastTick) / 1000;
-recalcIncome();
-funds += diff * fundsPerSec;
-log(`⏳ Offline progress: ${diff.toFixed(1)}s`);
-
-/* =======================
-   GAME LOOPS
-======================= */
 setInterval(()=>{
     funds += fundsPerSec / 10;
     updateUI();
 },100);
 
-setInterval(colliderTick, 10000);
+/* =====================
+   MARKET
+===================== */
+function buyElement(name, cost) {
+    if (funds >= cost && !ownedElements.includes(name)) {
+        funds -= cost;
+        ownedElements.push(name);
+        log(`🧬 Acquired element: ${name}`);
+        updateUI();
+    }
+}
 
-setInterval(()=>{
-    localStorage.setItem("ea_save", JSON.stringify({
-        funds, knowledge, elements, fictional, tech, lastTick:Date.now()
-    }));
-},5000);
+/* =====================
+   REACTIONS
+===================== */
+function attemptReaction() {
+    for (const r of reactions) {
+        if (r.inputs.every(i=>ownedElements.includes(i)) &&
+            !compounds.find(c=>c.name===r.output)) {
 
+            compounds.push({ name:r.output, income:r.income });
+            log(`⚗️ Discovered compound: ${r.output}`);
+            recalcIncome();
+            updateUI();
+            return;
+        }
+    }
+    log("❌ No valid reactions discovered.");
+}
+
+/* =====================
+   COLLIDER
+===================== */
+function buyCollider() {
+    if (funds >= 10000 && !colliderBuilt) {
+        funds -= 10000;
+        colliderBuilt = true;
+        log("⚛️ Particle Collider constructed.");
+    }
+}
+
+function colliderExperiment() {
+    if (!colliderBuilt) {
+        log("❗ Collider not built.");
+        return;
+    }
+
+    const name =
+        "X" +
+        String.fromCharCode(65 + Math.floor(Math.random()*26)) +
+        "-" + Math.floor(Math.random()*9999);
+
+    const stability = Math.floor(Math.random()*100);
+    const energy = Math.floor(Math.random()*200);
+
+    const income = Math.max(1, Math.floor((stability + energy) / 40));
+
+    fictionalElements.push(name);
+    compounds.push({ name, income });
+
+    log(`<span class="fictional">
+        ⚛️ New Element Created: ${name}<br>
+        Stability: ${stability} | Energy Density: ${energy}
+    </span>`);
+
+    recalcIncome();
+}
+
+/* =====================
+   INIT
+===================== */
+recalcIncome();
 updateUI();
+log("🧪 Research initialized. Starting element: Hydrogen.");
 </script>
 
 </body>
 </html>
+
