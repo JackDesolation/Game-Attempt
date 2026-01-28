@@ -8,7 +8,7 @@
 <body>
 
 <h1>⚗️ Element Lab</h1>
-<p class="subtitle">Real chemistry. Fake chemistry. Your rules.</p>
+<p class="subtitle">Real chemistry. Fake chemistry. Build your own compounds.</p>
 
 <div class="panel">
 Funds: $<span id="funds">0</span> |
@@ -21,7 +21,7 @@ Funding/sec: $<span id="fps">0</span>
 </div>
 
 <div class="panel">
-<h3>⚗️ Chemical Reaction</h3>
+<h3>⚗️ Chemical Reaction (manual)</h3>
 <input id="equation" placeholder="Example: 2H2 + O2 -> 2H2O">
 <button onclick="submitReaction()">Run Reaction</button>
 </div>
@@ -35,6 +35,11 @@ Funding/sec: $<span id="fps">0</span>
 <h3>⚛️ Particle Collider</h3>
 <input id="colliderInput" placeholder="Example: U + U">
 <button onclick="startColliderCharge()">Charge Collider (60s)</button>
+</div>
+
+<div class="panel">
+<h3>📚 Compound Library</h3>
+<div id="compoundLibrary"></div>
 </div>
 
 <div class="panel">
